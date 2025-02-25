@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Attrition Predictor</title>
+    <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+    <header>
+        <div class="logo">Attrition Predictor</div>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Will Your Employee Stay or Leave?</h1>
+            <p>Analyze key factors and predict the likelihood of attrition.</p>
+        </div>
+    </section>
+
+    <section class="form-section">
+        <h2>Enter Employee Details</h2>
+        <form id="prediction-form">
+            <fieldset>
+                <legend>Basic Details</legend>
+                <label for="job_level">Job Level:</label>
+                <input type="number" id="job_level" min="1" required>
+                
+                <label for="monthly_income">Monthly Income ($):</label>
+                <input type="number" id="monthly_income" min="0" required>
+            </fieldset>
+
+            <fieldset>
+                <legend>Experience & Performance</legend>
+                <label for="total_working_years">Total Working Years:</label>
+                <input type="number" id="total_working_years" min="0" required>
+                
+                <label for="percent_salary_hike">Percent Salary Hike:</label>
+                <input type="number" id="percent_salary_hike" min="0" required>
+                
+                <label for="performance_rating">Performance Rating (1-5):</label>
+                <input type="number" id="performance_rating" min="1" max="5" required>
+            </fieldset>
+
+            <fieldset>
+                <legend>Company Tenure</legend>
+                <label for="years_at_company">Years at Company:</label>
+                <input type="number" id="years_at_company" min="0" required>
+                
+                <label for="years_in_current_role">Years in Current Role:</label>
+                <input type="number" id="years_in_current_role" min="0" required>
+                
+                <label for="years_with_curr_manager">Years with Current Manager:</label>
+                <input type="number" id="years_with_curr_manager" min="0" required>
+            </fieldset>
+
+            <button type="submit">Predict</button>
+        </form>
+        <div id="prediction-result"></div>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Attrition Predictor. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.getElementById("prediction-form").addEventListener("submit", async function(event) {
+            event.preventDefault();
+            document.getElementById("prediction-result").innerHTML = `<p>⏳ Predicting...</p>`;
+            
+            const inputData = {
+                "features": [
+                    parseInt(document.getElementById("job_level").value),
+                    parseFloat(document.getElementById("monthly_income").value),
+                    parseInt(document.getElementById("total_working_years").value),
+                    parseInt(document.getElementById("percent_salary_hike").value),
+                    parseInt(document.getElementById("performance_rating").value),
+                    parseInt(document.getElementById("years_at_company").value),
+                    parseInt(document.getElementById("years_in_current_role").value),
+                    parseInt(document.getElementById("years_with_curr_manager").value)
+                ]
+            };
+            
+            try {
+                const response = await fetch("/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(inputData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                
+                const data = await response.json();
+                const message = data.prediction === 1
+                    ? "🚨 Employee is likely to leave the company"
+                    : "✅ Employee will stay with the company";
+                
+                document.getElementById("prediction-result").innerHTML = `
+                    <h3>${message}</h3>
+                    <p>Probability for Attrition: ${data.probability.toFixed(2)}</p>
+                `;
+            } catch (error) {
+                document.getElementById("prediction-result").innerHTML = `
+                    <p class="error">❌ Error occurred while making prediction. Please try again.</p>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
